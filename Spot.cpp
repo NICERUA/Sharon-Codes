@@ -705,57 +705,9 @@ int main ( int argc, char** argv ) try {  // argc, number of cmd line args;
       } // ending Add curves
     } // ending trivial spot on pole
 	
-    /*****************************************/
-    /* SPOT IS SYMMETRIC OVER GEOMETRIC POLE */
-    /*****************************************/
-		
-    else if ( theta_1 == 0 && rho != 0 ) {
-      // Looping through the mesh of the spot
-      for ( unsigned int k(0); k < numtheta; k++ ) {
-	theta_0_1 = theta_1 - rho + k * dtheta + 0.5 * dtheta;   // note: theta_0_1 changes depending on how we've cut up the spot
-	curve.para.theta = theta_0_1;
-	// don't need a phi_edge the way i'm doing the phi_0_1 calculation
-	dphi = Units::PI / numphi;
-	for ( unsigned int j(0); j < numphi; j++ ) {
-	  phi_0_1 = -Units::PI/2 + dphi * j + 0.5 * dphi;
-	  if ( !T_mesh_in ) {
-	    T_mesh[k][j] = spot_temperature;
-	  }
-				
-	  curve.para.dS = pow(rspot,2) * sin(fabs(theta_0_1)) * dtheta * dphi;
-	  // Need to multiply by R^2 here because of my if numtheta=1 statement, 
-	  // which sets dS = true surface area
-	            
-	  // alternative method for computing dS: dS=truesurfarea/pow(numtheta,2);
-					
-	  if ( numtheta == 1 ) 
-	    curve.para.dS = trueSurfArea;
-	  if ( NS_model == 1 || NS_model == 2)
-	    curve.para.dS /= curve.para.cosgamma;
-	  curve.para.temperature = T_mesh[k][j];
-	  curve.para.phi_0 = phi_0_1;
-	  // Calling two very important routines in Chi.cpp:
-	  curve = ComputeAngles(&curve, defltoa);  // Computing the parameters it needs to compute the light curve; defltoa has the routines for what we want to do
-	  curve = ComputeCurve(&curve);
-			
-	  if (curve.para.temperature == 0.0) { 
-	    for (unsigned int i(0); i < numbins; i++) {
-	      for (unsigned int p(0); p < numbands; p++)
-		curve.f[p][i] = 0.0;  // if temperature is 0, then there is no flux!
-	    }
-	  }
-	  // Add curves, load into Flux array
-	  for (unsigned int i(0); i < numbins; i++) {
-	    for (unsigned int p(0); p < numbands; p++) {
-	      Flux[p][i] += curve.f[p][i];
-	    }
-	  } // ending Add curves
-	}
-      }
-    } // ending symmetric spot over pole
-    else{
-
-      //    std::cout << "Standard Case" << std::endl;
+    // This is the STANDARD CASE, and should be the one that is normally executed.
+    
+    //    std::cout << "Standard Case" << std::endl;
 		
     if ( T_mesh_in ) {
       std::cout << "WARNING: code can't handle a spot asymmetric over the pole with a temperature mesh." << std::endl;
@@ -916,10 +868,10 @@ int main ( int argc, char** argv ) try {  // argc, number of cmd line args;
       }
       
 
-    } // closing for loop through theta divisions
-    }		 
+      } // closing for loop through theta divisions
+    } // end loop through pieces		 
 	
-    } // End Standard Case
+     // End Standard Case
 
     /********************************************************************************/
     /* SECOND HOT SPOT -- Can handle going over geometric pole, but not well-tested */
